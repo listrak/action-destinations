@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// TODO: Remove the above before making PR to Segment
+
 import type { DestinationDefinition } from '@segment/actions-core'
 import type { Settings } from './generated-types'
 
@@ -16,17 +19,21 @@ const destination: DestinationDefinition<Settings> = {
     },
     refreshAccessToken: async (request, { auth }) => {
       // Return a request that refreshes the access_token if the API supports it
-      const res = await request('https://www.example.com/oauth/refresh', {
-        method: 'POST',
-        body: new URLSearchParams({
-          refresh_token: auth.refreshToken,
-          client_id: auth.clientId,
-          client_secret: auth.clientSecret,
-          grant_type: 'refresh_token'
-        })
-      })
 
-      return { accessToken: res.data.access_token }
+      // TODO: Write an actual auth. This is commented out for local testing.
+
+      // const res = await request('https://www.example.com/oauth/refresh', {
+      //   method: 'POST',
+      //   body: new URLSearchParams({
+      //     refresh_token: auth.refreshToken,
+      //     client_id: auth.clientId,
+      //     client_secret: auth.clientSecret,
+      //     grant_type: 'refresh_token'
+      //   })
+      // })
+
+      // return { accessToken: res.data.access_token }
+      return { accessToken: 'token-we-want-to-use-to-auth' }
     }
   },
   extendRequest({ auth }) {
