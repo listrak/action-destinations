@@ -35,13 +35,15 @@ const action: ActionDefinition<Settings, Payload> = {
       required: true
     }
   },
-  perform: (request, data) => {
+  perform: (request, { payload }) => {
     // Make your partner api request here!
-    // return request('https://example.com', {
-    //   method: 'post',
-    //   json: data.payload
-    // })
-    console.log(request, data)
+    console.log(request, payload)
+    return request('https://z1yua59s9c.execute-api.us-east-1.amazonaws.com/Stage1?Version=2019-05-09', {
+      method: 'post',
+      json: {
+        data: payload
+      }
+    })
   }
 }
 
