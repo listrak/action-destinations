@@ -1,10 +1,10 @@
 import nock from 'nock'
-import { createTestEvent, createTestIntegration } from '@segment/actions-core'
+import { createTestIntegration } from '@segment/actions-core'
 import Definition from '../index'
 
 const testDestination = createTestIntegration(Definition)
 
-describe('{{name}}', () => {
+describe('Listrak', () => {
   describe('testAuthentication', () => {
     it('should validate authentication inputs', async () => {
       nock('https://your.destination.endpoint').get('*').reply(200, {})

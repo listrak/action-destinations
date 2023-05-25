@@ -6,8 +6,8 @@ import type { Settings } from './generated-types'
 import setEmailProfileFields from './setEmailProfileFields'
 
 const destination: DestinationDefinition<Settings> = {
-  name: '{{name}}',
-  slug: '{{slug}}',
+  name: 'Listrak',
+  slug: 'actions-listrak',
   mode: 'cloud',
 
   authentication: {
