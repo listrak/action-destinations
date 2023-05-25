@@ -8,7 +8,7 @@ const action: ActionDefinition<Settings, Payload> = {
   fields: {
     email: {
       label: 'Email',
-      description: 'The user\'s email address',
+      description: "The user's email address",
       type: 'string',
       allowNull: false,
       required: true
@@ -24,6 +24,13 @@ const action: ActionDefinition<Settings, Payload> = {
       label: 'Profile Field ID',
       description: 'The ID of the Profile Field',
       type: 'number',
+      allowNull: false,
+      required: true
+    },
+    profileFieldValue: {
+      label: 'Profile field value',
+      description: 'The value of the Profile Field',
+      type: 'string',
       allowNull: false,
       required: true
     }
