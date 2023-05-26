@@ -35,14 +35,11 @@ const action: ActionDefinition<Settings, Payload> = {
       required: true
     }
   },
-  perform: (request, { payload }) => {
+  perform: (request, options) => {
     // Make your partner api request here!
-    console.log(request, payload)
-    return request('https://z1yua59s9c.execute-api.us-east-1.amazonaws.com/Stage1?Version=2019-05-09', {
-      method: 'post',
-      json: {
-        data: payload
-      }
+    console.log(request, options.payload)
+    return request('https://api.listrak.com/email/v1/ipPool', {
+      method: 'GET'
     })
   }
 }

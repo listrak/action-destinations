@@ -31,38 +31,32 @@ const destination: DestinationDefinition<Settings> = {
         required: true
       }
     },
-    testAuthentication: async (request, { auth }) => {
-      const res: ModifiedResponse<ListrakAuthResponse> = await request('https://auth.listrak.com/OAuth2/Token', {
-        method: 'POST',
-        body: new URLSearchParams({
-          client_id: auth.client_id,
-          client_secret: auth.client_secret,
-          grant_type: 'client_credentials'
-        })
+    testAuthentication: async (request, _) => {
+      const res: ModifiedResponse<ListrakAuthResponse> = await request('/ipPool', {
+        method: 'GET'
       })
       if (res.status == 200) {
         return { accessToken: res.data.access_token }
       } else {
         throw new Error(res.status + res.statusText)
       }
-      return { accessToken: res.data.access_token }
     },
     refreshAccessToken: async (request, { auth }) => {
       const res: ModifiedResponse<ListrakAuthResponse> = await request('https://auth.listrak.com/OAuth2/Token', {
         method: 'POST',
         body: new URLSearchParams({
-          client_id: auth.client_id,
-          client_secret: auth.client_secret,
+          client_id: auth.clientId,
+          client_secret: auth.clientSecret,
           grant_type: 'client_credentials'
         })
       })
       return { accessToken: res.data.access_token }
     }
   },
-  extendRequest: ({ settings }) => {
+  extendRequest: ({ auth }) => {
     return {
       prefixUrl: `https://api.listrak.com/email/v1`,
-      headers: { Authorization: `Bearer ${settings.access_token}` },
+      headers: { Authorization: `Bearer ${auth?.accessToken}` },
       responseType: 'json'
     }
   },
