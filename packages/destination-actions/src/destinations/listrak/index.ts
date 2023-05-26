@@ -1,9 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // TODO: Remove the above before making PR to Segment
 
-import type { DestinationDefinition } from '@segment/actions-core'
+import type { DestinationDefinition, ModifiedResponse } from '@segment/actions-core'
 import type { Settings } from './generated-types'
 import setEmailProfileFields from './setEmailProfileFields'
+
+class ListrakAuthResponse {
+  public access_token: string
+}
 
 const destination: DestinationDefinition<Settings> = {
   name: 'Listrak',
@@ -24,18 +28,19 @@ const destination: DestinationDefinition<Settings> = {
 
       // TODO: Write an actual auth. This is commented out for local testing.
 
-      const res = await request('https://www.example.com/oauth/refresh', {
+      const res: ModifiedResponse<ListrakAuthResponse> = await request('https://auth.listrak.com/OAuth2/Token', {
         method: 'POST',
+        // headers: {
+        //   'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        // },
         body: new URLSearchParams({
-          refresh_token: auth.refreshToken,
           client_id: auth.clientId,
           client_secret: auth.clientSecret,
-          grant_type: 'refresh_token'
+          grant_type: 'client_credentials'
         })
       })
       console.log(res)
-      // return { accessToken: res.data.access_token }
-      return { accessToken: 'token-we-want-to-use-to-auth' }
+      return { accessToken: res.data.access_token }
     }
   },
   extendRequest({ auth }) {
