@@ -20,26 +20,19 @@ const destination: DestinationDefinition<Settings> = {
     fields: {
       client_id: {
         label: 'Client ID',
-        description: 'Your Listrak Segment Integration\'s Client ID',
+        description: "Your Listrak Segment Integration's Client ID",
         type: 'string',
         required: true
       },
       client_secret: {
         label: 'Client Secret',
-        description: 'Your Listrak Segment Integration\'s Client Secret',
+        description: "Your Listrak Segment Integration's Client Secret",
         type: 'string',
         required: true
       }
     },
     testAuthentication: async (request, _) => {
-      const res: ModifiedResponse<ListrakAuthResponse> = await request('/ipPool', {
-        method: 'GET'
-      })
-      if (res.status == 200) {
-        return { accessToken: res.data.access_token }
-      } else {
-        throw new Error(res.status + res.statusText)
-      }
+      return await request('/ipPool')
     },
     refreshAccessToken: async (request, { auth }) => {
       const res: ModifiedResponse<ListrakAuthResponse> = await request('https://auth.listrak.com/OAuth2/Token', {
