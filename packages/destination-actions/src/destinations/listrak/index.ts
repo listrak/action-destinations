@@ -7,6 +7,7 @@ import setEmailProfileFields from './setEmailProfileFields'
 
 class ListrakAuthResponse {
   public access_token: string
+  public error: string
 }
 
 const destination: DestinationDefinition<Settings> = {
@@ -16,38 +17,53 @@ const destination: DestinationDefinition<Settings> = {
 
   authentication: {
     scheme: 'oauth2',
-    fields: {},
-    testAuthentication: (request) => {
-      console.log(request)
-      // Return a request that tests/validates the user's credentials.
-      // If you do not have a way to validate the authentication fields safely,
-      // you can remove the `testAuthentication` function, though discouraged.
+    fields: {
+      client_id: {
+        label: 'Client ID',
+        description: 'Your Listrak Segment Integration\'s Client ID',
+        type: 'string',
+        required: true
+      },
+      client_secret: {
+        label: 'Client Secret',
+        description: 'Your Listrak Segment Integration\'s Client Secret',
+        type: 'string',
+        required: true
+      }
     },
-    refreshAccessToken: async (request, { auth }) => {
-      // Return a request that refreshes the access_token if the API supports it
-
-      // TODO: Write an actual auth. This is commented out for local testing.
-
+    testAuthentication: async (request, { auth }) => {
       const res: ModifiedResponse<ListrakAuthResponse> = await request('https://auth.listrak.com/OAuth2/Token', {
         method: 'POST',
-        // headers: {
-        //   'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-        // },
         body: new URLSearchParams({
-          client_id: auth.clientId,
-          client_secret: auth.clientSecret,
+          client_id: auth.client_id,
+          client_secret: auth.client_secret,
           grant_type: 'client_credentials'
         })
       })
-      console.log(res)
+      if (res.status == 200) {
+        return { accessToken: res.data.access_token }
+      } else {
+        throw new Error(res.status + res.statusText)
+      }
+      return { accessToken: res.data.access_token }
+    },
+    refreshAccessToken: async (request, { auth }) => {
+      const res: ModifiedResponse<ListrakAuthResponse> = await request('https://auth.listrak.com/OAuth2/Token', {
+        method: 'POST',
+        body: new URLSearchParams({
+          client_id: auth.client_id,
+          client_secret: auth.client_secret,
+          grant_type: 'client_credentials'
+        })
+      })
       return { accessToken: res.data.access_token }
     }
   },
-  extendRequest({ auth }) {
+  extendRequest: ({ settings }) => {
     return {
-      headers: {
-        authorization: `Bearer ${auth?.accessToken}`
-      }
+      prefixUrl: `https://api.listrak.com/email/v1`,
+      headers: { Authorization: `Bearer ${settings.access_token}` },
+      responseType: 'json'
     }
   },
 
