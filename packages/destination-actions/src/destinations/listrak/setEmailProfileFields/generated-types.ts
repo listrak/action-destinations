@@ -13,4 +13,8 @@ export interface Payload {
    * The ID of the Profile Field
    */
   profileFieldId: number
+  /**
+   * The value of the Profile Field
+   */
+  profileFieldValue: string
 }
