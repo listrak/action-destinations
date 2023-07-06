@@ -1,14 +1,13 @@
 import type { DestinationDefinition } from '@segment/actions-core'
 import type { Settings } from './generated-types'
-import addUserToAudience from './addUserToAudience'
-import removeUserFromAudience from './removeUserFromAudience'
+import updateContactProfileFields from './updateContactProfileFields'
 import { listrakAuthenticate } from './listrak'
 import type { ClientCredentials } from './listrak'
 
 const destination: DestinationDefinition<Settings> = {
   name: 'Listrak Audiences',
   slug: 'actions-listrak',
-  description: 'Add/remove users to/from Listrak Audiences using Listrak API',
+  description: 'Update contact profile fields using the Listrak API',
   mode: 'cloud',
   authentication: {
     scheme: 'custom',
@@ -24,12 +23,6 @@ const destination: DestinationDefinition<Settings> = {
         description: 'Your Listrak API client secret',
         type: 'string',
         required: true
-      },
-      advertiser_id: {
-        label: 'Advertiser ID',
-        description: 'Your Listrak Advertiser ID',
-        type: 'string',
-        required: true
       }
     },
     testAuthentication: async (request, { settings }) => {
@@ -41,8 +34,7 @@ const destination: DestinationDefinition<Settings> = {
     }
   },
   actions: {
-    addUserToAudience,
-    removeUserFromAudience
+    updateContactProfileFields
   }
 }
 

@@ -1,10 +1,9 @@
-import type { ActionDefinition } from '@segment/actions-core'
+import { ActionDefinition } from '@segment/actions-core'
 import { getAudienceId, patchAudience, hash } from '../listrak'
 import type { Operation, ClientCredentials } from '../listrak'
 import type { Settings } from '../generated-types'
 import type { Payload } from './generated-types'
 import type { RequestClient } from '@segment/actions-core'
-
 
 const getOperationFromPayload = async (
   request: RequestClient,
@@ -12,8 +11,13 @@ const getOperationFromPayload = async (
   payload: Payload[],
   credentials: ClientCredentials
 ): Promise<Operation> => {
-  const remove_user_list: string[] = []
+  const add_user_list: string[] = []
   let audience_key = ''
+
+  /*
+  The logic below assumes that all events within the batch will have the same audience_key
+  Customers should connect single audience to each instance of Listrak audience
+  */
 
   for (const event of payload) {
     let email = undefined
@@ -22,15 +26,14 @@ const getOperationFromPayload = async (
       audience_key = event.audience_key
 
     email = event.hash_emails ? hash(event.email) : event.email
-    if (email) remove_user_list.push(email)
+    if (email) add_user_list.push(email)
   }
 
   const audience_id = await getAudienceId(request, advertiser_id, audience_key, credentials)
-
   const operation: Operation = {
-    operation_type: "remove",
+    operation_type: "add",
     audience_id: audience_id,
-    user_list: remove_user_list,
+    user_list: add_user_list,
   }
   return operation;
 }
@@ -40,7 +43,6 @@ const processPayload = async (
   settings: Settings,
   payload: Payload[]
 ): Promise<Response> => {
-
   const credentials: ClientCredentials = {
     client_id: settings.client_id,
     client_secret: settings.client_secret
@@ -50,50 +52,45 @@ const processPayload = async (
 }
 
 const action: ActionDefinition<Settings, Payload> = {
-  title: 'Remove users from Audience',
-  description: 'Remove users from Listrak audience by connecting to Listrak API',
-  defaultSubscription: 'type = "track" and event = "Audience Exited"',
+  title: 'Add users to Audience',
+  description: 'Add users from Listrak audience by connecting to Listrak API',
+  defaultSubscription: 'type = "track" and event = "Audience Entered"',
   fields: {
-    audience_key: {
-      label: 'Audience key',
-      description: "Unique name for personas audience",
-      type: 'string',
-      default: {
-        '@path': '$.properties.audience_key'
-      }
-    },
-    event: {
-      label: 'Event name',
-      description: "Event for audience entering or exiting",
-      type: 'string',
-      default: {
-        '@path': '$.event'
-      }
-    },
     email: {
       label: 'Email',
-      description: "The user's email",
+      description: "Email address of the contact.",
       type: 'string',
       format: 'email',
       default: {
         '@path': '$.context.traits.email'
       }
     },
-    hash_emails: {
-      label: 'Hash Emails',
-      description: "Hash emails before sending them to Listrak (may lower your audience's match rate). If deactivated, emails will be sent unhashed to Listrak's API and will be hashed upon reception at Listrak's server.",
-      type: 'boolean',
-      default: false,
-      required: false
-    },
+    segmentationFieldValues: {
+      label: 'Segmentation Field Values',
+      description: 'Profile field values associated with the contact.',
+      type: 'object',
+      multiple: true,
+      required: true,
+      properties: {
+        segmentationFieldId: {
+          label: 'Segmentation Field Id',
+          type: 'number',
+          required: true
+        },
+        value: {
+          label: 'Value',
+          type: 'string',
+          required: true
+        }
+      }
+    }
   },
   perform: async (request, { settings, payload }) => {
     return await processPayload(request, settings, [payload])
   },
   performBatch: async (request, { settings, payload }) => {
     return await processPayload(request, settings, payload)
+
   }
 }
-
-
 export default action
