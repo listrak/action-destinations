@@ -9,8 +9,4 @@ export interface Settings {
    * Your Listrak API client secret
    */
   client_secret: string
-  /**
-   * Your Listrak Advertiser ID
-   */
-  advertiser_id: string
 }

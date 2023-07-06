@@ -1,54 +1,35 @@
-import { ActionDefinition } from '@segment/actions-core'
-import { getAudienceId, patchAudience, hash } from '../listrak'
-import type { Operation, ClientCredentials } from '../listrak'
+import { ActionDefinition, IntegrationError } from '@segment/actions-core'
+import { type ClientCredentials, getRequestHeaders } from '../listrak'
 import type { Settings } from '../generated-types'
 import type { Payload } from './generated-types'
 import type { RequestClient } from '@segment/actions-core'
 
-const getOperationFromPayload = async (
-  request: RequestClient,
-  advertiser_id: string,
-  payload: Payload[],
-  credentials: ClientCredentials
-): Promise<Operation> => {
-  const add_user_list: string[] = []
-  let audience_key = ''
-
-  /*
-  The logic below assumes that all events within the batch will have the same audience_key
-  Customers should connect single audience to each instance of Listrak audience
-  */
-
-  for (const event of payload) {
-    let email = undefined
-
-    if (!audience_key && event.audience_key)
-      audience_key = event.audience_key
-
-    email = event.hash_emails ? hash(event.email) : event.email
-    if (email) add_user_list.push(email)
-  }
-
-  const audience_id = await getAudienceId(request, advertiser_id, audience_key, credentials)
-  const operation: Operation = {
-    operation_type: "add",
-    audience_id: audience_id,
-    user_list: add_user_list,
-  }
-  return operation;
-}
+const BASE_API_URL = 'https://api.listrak.com/email/v1'
 
 const processPayload = async (
   request: RequestClient,
   settings: Settings,
-  payload: Payload[]
+  payload: Payload[],
+  listId: number
 ): Promise<Response> => {
   const credentials: ClientCredentials = {
     client_id: settings.client_id,
     client_secret: settings.client_secret
   }
-  const operation: Operation = await getOperationFromPayload(request, settings.advertiser_id, payload, credentials);
-  return await patchAudience(request, operation, credentials)
+
+  if (!listId)
+    throw new IntegrationError(`The List ID should be a number (${listId})`, 'Invalid input', 400)
+
+  const endpoint = `${BASE_API_URL}/audiences/${listId}/contactlist`
+  const headers = await getRequestHeaders(request, credentials)
+  const json = {
+    data: payload
+  }
+  return request(endpoint, {
+    method: 'PATCH',
+    json: json,
+    headers: headers
+  })
 }
 
 const action: ActionDefinition<Settings, Payload> = {
@@ -56,11 +37,18 @@ const action: ActionDefinition<Settings, Payload> = {
   description: 'Add users from Listrak audience by connecting to Listrak API',
   defaultSubscription: 'type = "track" and event = "Audience Entered"',
   fields: {
+    listId: {
+      label: 'List ID',
+      required: true,
+      description: "Identifier used to locate the list.",
+      type: 'number'
+    },
     email: {
       label: 'Email',
       description: "Email address of the contact.",
       type: 'string',
       format: 'email',
+      required: true,
       default: {
         '@path': '$.context.traits.email'
       }
@@ -86,11 +74,10 @@ const action: ActionDefinition<Settings, Payload> = {
     }
   },
   perform: async (request, { settings, payload }) => {
-    return await processPayload(request, settings, [payload])
+    return await processPayload(request, settings, [payload], 0)
   },
   performBatch: async (request, { settings, payload }) => {
-    return await processPayload(request, settings, payload)
-
+    return await processPayload(request, settings, payload, 0)
   }
 }
 export default action
