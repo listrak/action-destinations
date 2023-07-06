@@ -2,19 +2,18 @@
 
 export interface Payload {
   /**
-   * Unique name for personas audience
+   * Identifier used to locate the list.
    */
-  audience_key?: string
+  listId: number
   /**
-   * Event for audience entering or exiting
+   * Email address of the contact.
    */
-  event?: string
+  email2: string
   /**
-   * The user's email
+   * Profile field values associated with the contact.
    */
-  email?: string
-  /**
-   * Hash emails before sending them to Listrak (may lower your audience's match rate). If deactivated, emails will be sent unhashed to Listrak's API and will be hashed upon reception at Listrak's server.
-   */
-  hash_emails?: boolean
+  segmentationFieldValues: {
+    segmentationFieldId: number
+    value: string
+  }[]
 }
